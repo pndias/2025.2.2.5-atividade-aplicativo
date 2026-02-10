@@ -48,8 +48,13 @@ header p {
   margin-bottom: 20px;
 }
 
-.search-input {
+.search-input-wrapper {
   flex: 1;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
   padding: 15px;
   border: 2px solid #333;
   background: #121212;
@@ -62,6 +67,66 @@ header p {
 .search-input:focus {
   outline: none;
   border-color: #00e676;
+}
+
+/* Dropdown de Sugestões */
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1e1e1e;
+  border: 2px solid #00e676;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  margin-top: -8px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #333;
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: #2a2a2a;
+}
+
+.suggestion-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.suggestion-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.suggestion-name {
+  color: #e0e0e0;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.suggestion-category {
+  color: #00e676;
+  font-size: 0.85rem;
 }
 
 .btn {
@@ -184,8 +249,16 @@ header p {
 
 .recipe-info h3 {
   color: #e0e0e0;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: 1.2rem;
+}
+
+.recipe-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
 .recipe-category {
@@ -195,12 +268,31 @@ header p {
   padding: 5px 12px;
   border-radius: 20px;
   font-size: 0.85rem;
-  margin-bottom: 10px;
+  font-weight: 600;
 }
 
 .recipe-area {
   color: #999;
   font-size: 0.9rem;
+}
+
+/* Tags das receitas */
+.recipe-tags-container {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.recipe-tag {
+  display: inline-block;
+  background: #2a2a2a;
+  color: #bb86fc;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  border: 1px solid #bb86fc;
+  font-weight: 500;
 }
 
 /* Modal */
@@ -461,6 +553,19 @@ header p {
 
   .search-box {
     flex-direction: column;
+  }
+
+  .search-input-wrapper {
+    width: 100%;
+  }
+
+  .suggestions-dropdown {
+    max-height: 300px;
+  }
+
+  .suggestion-item img {
+    width: 40px;
+    height: 40px;
   }
 
   .recipe-header {

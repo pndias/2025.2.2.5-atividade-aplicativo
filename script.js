@@ -7,6 +7,14 @@ const loadingElement = document.getElementById('loading');
 const modal = document.getElementById('modal');
 const modalBody = document.getElementById('modalBody');
 const popularRecipesContainer = document.getElementById('popularRecipes');
+const searchByNameInput = document.getElementById('searchByName');
+const searchByIngredientInput = document.getElementById('searchByIngredient');
+const suggestionsDropdown = document.getElementById('suggestions');
+const ingredientSuggestionsDropdown = document.getElementById('ingredientSuggestions');
+
+// Variáveis para debounce
+let searchTimeout;
+let ingredientTimeout;
 
 // Função para mostrar loading
 function showLoading() {
@@ -21,7 +29,7 @@ function hideLoading() {
 
 // Função para buscar receitas por nome
 async function searchByName() {
-    const searchTerm = document.getElementById('searchByName').value.trim();
+    const searchTerm = searchByNameInput.value.trim();
     
     if (!searchTerm) {
         alert('Por favor, digite o nome de uma receita!');
@@ -49,7 +57,7 @@ async function searchByName() {
 
 // Função para buscar receitas por ingrediente
 async function searchByIngredient() {
-    const ingredient = document.getElementById('searchByIngredient').value.trim();
+    const ingredient = searchByIngredientInput.value.trim();
     
     if (!ingredient) {
         alert('Por favor, digite um ingrediente!');
@@ -103,16 +111,25 @@ function displayResults(meals) {
         return;
     }
 
-    resultsContainer.innerHTML = meals.map(meal => `
-        <div class="recipe-card" onclick="showRecipeDetails('${meal.idMeal}')">
-            <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
-            <div class="recipe-info">
-                <h3>${meal.strMeal}</h3>
-                <span class="recipe-category">${meal.strCategory || 'Categoria'}</span>
-                <p class="recipe-area">🌍 ${meal.strArea || 'Internacional'}</p>
+    resultsContainer.innerHTML = meals.map(meal => {
+        const tags = meal.strTags ? meal.strTags.split(',').map(tag => 
+            `<span class="recipe-tag">${tag.trim()}</span>`
+        ).join('') : '';
+        
+        return `
+            <div class="recipe-card" onclick="showRecipeDetails('${meal.idMeal}')">
+                <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
+                <div class="recipe-info">
+                    <h3>${meal.strMeal}</h3>
+                    <div class="recipe-meta">
+                        <span class="recipe-category">${meal.strCategory || 'Categoria'}</span>
+                        <span class="recipe-area">🌍 ${meal.strArea || 'Internacional'}</span>
+                    </div>
+                    ${tags ? `<div class="recipe-tags-container">${tags}</div>` : ''}
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // Função para mostrar detalhes da receita no modal
@@ -198,22 +215,63 @@ modal.addEventListener('click', (e) => {
     }
 });
 
+// Autocomplete para busca por nome
+searchByNameInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    
+    clearTimeout(searchTimeout);
+    
+    if (query.length < 2) {
+        suggestionsDropdown.classList.add('hidden');
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        fetchSuggestions(query);
+    }, 300);
+});
+
+// Autocomplete para busca por ingrediente
+searchByIngredientInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim();
+    
+    clearTimeout(ingredientTimeout);
+    
+    if (query.length < 2) {
+        ingredientSuggestionsDropdown.classList.add('hidden');
+        return;
+    }
+    
+    ingredientTimeout = setTimeout(() => {
+        fetchIngredientSuggestions(query);
+    }, 300);
+});
+
 // Permitir busca com Enter
-document.getElementById('searchByName').addEventListener('keypress', (e) => {
+searchByNameInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         searchByName();
+        suggestionsDropdown.classList.add('hidden');
     }
 });
 
-document.getElementById('searchByIngredient').addEventListener('keypress', (e) => {
+searchByIngredientInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         searchByIngredient();
+        ingredientSuggestionsDropdown.classList.add('hidden');
+    }
+});
+
+// Fechar sugestões ao clicar fora
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-input-wrapper')) {
+        suggestionsDropdown.classList.add('hidden');
+        ingredientSuggestionsDropdown.classList.add('hidden');
     }
 });
 
 // Função para carregar receitas aleatórias
 async function loadRandomRecipes() {
-    const popularSection = document.getElementById('popularSection');
     popularRecipesContainer.innerHTML = '<div class="loading-inline"><div class="spinner-small"></div></div>';
     
     try {
@@ -239,16 +297,98 @@ function displayPopularRecipes(meals) {
         return;
     }
 
-    popularRecipesContainer.innerHTML = meals.map(meal => `
-        <div class="recipe-card" onclick="showRecipeDetails('${meal.idMeal}')">
-            <img src="${meal.strMealThumb}" alt="${meal.strMeal}" loading="lazy">
-            <div class="recipe-info">
-                <h3>${meal.strMeal}</h3>
-                <span class="recipe-category">${meal.strCategory || 'Categoria'}</span>
-                <p class="recipe-area">🌍 ${meal.strArea || 'Internacional'}</p>
+    popularRecipesContainer.innerHTML = meals.map(meal => {
+        const tags = meal.strTags ? meal.strTags.split(',').map(tag => 
+            `<span class="recipe-tag">${tag.trim()}</span>`
+        ).join('') : '';
+        
+        return `
+            <div class="recipe-card" onclick="showRecipeDetails('${meal.idMeal}')">
+                <img src="${meal.strMealThumb}" alt="${meal.strMeal}" loading="lazy">
+                <div class="recipe-info">
+                    <h3>${meal.strMeal}</h3>
+                    <div class="recipe-meta">
+                        <span class="recipe-category">${meal.strCategory || 'Categoria'}</span>
+                        <span class="recipe-area">🌍 ${meal.strArea || 'Internacional'}</span>
+                    </div>
+                    ${tags ? `<div class="recipe-tags-container">${tags}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Função para buscar sugestões de receitas
+async function fetchSuggestions(query) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/search.php?s=${query}`);
+        const data = await response.json();
+        
+        if (data.meals && data.meals.length > 0) {
+            displaySuggestions(data.meals.slice(0, 5));
+        } else {
+            suggestionsDropdown.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Erro ao buscar sugestões:', error);
+    }
+}
+
+// Função para buscar sugestões de ingredientes
+async function fetchIngredientSuggestions(query) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/filter.php?i=${query}`);
+        const data = await response.json();
+        
+        if (data.meals && data.meals.length > 0) {
+            displayIngredientSuggestions(data.meals.slice(0, 5));
+        } else {
+            ingredientSuggestionsDropdown.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error('Erro ao buscar sugestões de ingredientes:', error);
+    }
+}
+
+// Exibir sugestões de receitas
+function displaySuggestions(meals) {
+    suggestionsDropdown.innerHTML = meals.map(meal => `
+        <div class="suggestion-item" onclick="selectSuggestion('${meal.strMeal}')">
+            <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
+            <div class="suggestion-info">
+                <span class="suggestion-name">${meal.strMeal}</span>
+                <span class="suggestion-category">${meal.strCategory || ''}</span>
             </div>
         </div>
     `).join('');
+    suggestionsDropdown.classList.remove('hidden');
+}
+
+// Exibir sugestões de ingredientes
+function displayIngredientSuggestions(meals) {
+    ingredientSuggestionsDropdown.innerHTML = meals.map(meal => `
+        <div class="suggestion-item" onclick="selectIngredientSuggestion('${meal.strMeal}')">
+            <img src="${meal.strMealThumb}" alt="${meal.strMeal}">
+            <div class="suggestion-info">
+                <span class="suggestion-name">${meal.strMeal}</span>
+            </div>
+        </div>
+    `).join('');
+    ingredientSuggestionsDropdown.classList.remove('hidden');
+}
+
+// Selecionar sugestão de receita
+function selectSuggestion(mealName) {
+    searchByNameInput.value = mealName;
+    suggestionsDropdown.classList.add('hidden');
+    searchByName();
+}
+
+// Selecionar sugestão de ingrediente
+function selectIngredientSuggestion(mealName) {
+    searchByNameInput.value = mealName;
+    ingredientSuggestionsDropdown.classList.add('hidden');
+    searchByName();
 }
 
 // Função para buscar por categoria
