@@ -2,6 +2,10 @@
 
 Aplicativo web interativo para busca de receitas culinárias usando a API TheMealDB. O aplicativo permite buscar receitas por nome ou ingrediente, explorar categorias populares e visualizar sugestões dinâmicas de receitas.
 
+## 🌐 Demo Online
+
+**[🚀 Acesse o projeto aqui](https://mealsearch-pablodias.vercel.app/)**
+
 ## 📋 Sobre o Projeto
 
 Atividade avaliativa de desenvolvimento de um aplicativo web com HTML, CSS e JavaScript que consome API externa e constrói HTML dinamicamente.
