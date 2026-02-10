@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Receitas - TheMealDB</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Meal Search - O que você quer cozinhar hoje?</h1>
+            <p>Encontre receitas deliciosas por nome ou ingrediente</p>
+        </header>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchByName" 
+                    placeholder="Buscar por nome da receita..."
+                    class="search-input"
+                >
+                <button onclick="searchByName()" class="btn btn-primary">Buscar Receita</button>
+            </div>
+
+            <div class="divider">OU</div>
+
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchByIngredient" 
+                    placeholder="Buscar por ingrediente (ex: chicken, rice)..."
+                    class="search-input"
+                >
+                <button onclick="searchByIngredient()" class="btn btn-secondary">Buscar por Ingrediente</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Buscando receitas...</p>
+        </div>
+
+        <div id="results" class="results-grid"></div>
+
+        <!-- Modal para detalhes da receita -->
+        <div id="modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="modalBody"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
