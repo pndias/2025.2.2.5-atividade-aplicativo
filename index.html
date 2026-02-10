@@ -42,6 +42,46 @@
             <p>Buscando receitas...</p>
         </div>
 
+        <!-- Seção de Receitas Populares -->
+        <section id="popularSection" class="recipes-section">
+            <div class="section-header">
+                <h2>🔥 Receitas Populares</h2>
+                <button onclick="loadRandomRecipes()" class="btn-refresh">🔄 Novas Sugestões</button>
+            </div>
+            <div id="popularRecipes" class="results-grid"></div>
+        </section>
+
+        <!-- Seção de Categorias Rápidas -->
+        <section id="categoriesSection" class="categories-section">
+            <h2>🍽️ Categorias Populares</h2>
+            <div class="categories-grid">
+                <div class="category-card" onclick="searchByCategory('Seafood')">
+                    <span class="category-icon">🦐</span>
+                    <span class="category-name">Frutos do Mar</span>
+                </div>
+                <div class="category-card" onclick="searchByCategory('Chicken')">
+                    <span class="category-icon">🍗</span>
+                    <span class="category-name">Frango</span>
+                </div>
+                <div class="category-card" onclick="searchByCategory('Vegetarian')">
+                    <span class="category-icon">🥗</span>
+                    <span class="category-name">Vegetariano</span>
+                </div>
+                <div class="category-card" onclick="searchByCategory('Dessert')">
+                    <span class="category-icon">🍰</span>
+                    <span class="category-name">Sobremesas</span>
+                </div>
+                <div class="category-card" onclick="searchByCategory('Pasta')">
+                    <span class="category-icon">🍝</span>
+                    <span class="category-name">Massas</span>
+                </div>
+                <div class="category-card" onclick="searchByCategory('Beef')">
+                    <span class="category-icon">🥩</span>
+                    <span class="category-name">Carne</span>
+                </div>
+            </div>
+        </section>
+
         <div id="results" class="results-grid"></div>
 
         <!-- Modal para detalhes da receita -->

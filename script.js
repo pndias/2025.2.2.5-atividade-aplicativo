@@ -6,6 +6,7 @@ const resultsContainer = document.getElementById('results');
 const loadingElement = document.getElementById('loading');
 const modal = document.getElementById('modal');
 const modalBody = document.getElementById('modalBody');
+const popularRecipesContainer = document.getElementById('popularRecipes');
 
 // Função para mostrar loading
 function showLoading() {
@@ -26,6 +27,10 @@ async function searchByName() {
         alert('Por favor, digite o nome de uma receita!');
         return;
     }
+
+    // Esconder seções de sugestões
+    document.getElementById('popularSection').style.display = 'none';
+    document.getElementById('categoriesSection').style.display = 'none';
 
     showLoading();
 
@@ -50,6 +55,10 @@ async function searchByIngredient() {
         alert('Por favor, digite um ingrediente!');
         return;
     }
+
+    // Esconder seções de sugestões
+    document.getElementById('popularSection').style.display = 'none';
+    document.getElementById('categoriesSection').style.display = 'none';
 
     showLoading();
 
@@ -200,4 +209,79 @@ document.getElementById('searchByIngredient').addEventListener('keypress', (e) =
     if (e.key === 'Enter') {
         searchByIngredient();
     }
+});
+
+// Função para carregar receitas aleatórias
+async function loadRandomRecipes() {
+    const popularSection = document.getElementById('popularSection');
+    popularRecipesContainer.innerHTML = '<div class="loading-inline"><div class="spinner-small"></div></div>';
+    
+    try {
+        // Buscar 8 receitas aleatórias
+        const promises = Array(8).fill().map(() => 
+            fetch(`${API_BASE_URL}/random.php`).then(res => res.json())
+        );
+        
+        const results = await Promise.all(promises);
+        const meals = results.map(data => data.meals[0]);
+        
+        displayPopularRecipes(meals);
+    } catch (error) {
+        console.error('Erro ao carregar receitas populares:', error);
+        popularRecipesContainer.innerHTML = '<div class="no-results">Erro ao carregar receitas.</div>';
+    }
+}
+
+// Função para exibir receitas populares
+function displayPopularRecipes(meals) {
+    if (!meals || meals.length === 0) {
+        popularRecipesContainer.innerHTML = '<div class="no-results">Nenhuma receita encontrada.</div>';
+        return;
+    }
+
+    popularRecipesContainer.innerHTML = meals.map(meal => `
+        <div class="recipe-card" onclick="showRecipeDetails('${meal.idMeal}')">
+            <img src="${meal.strMealThumb}" alt="${meal.strMeal}" loading="lazy">
+            <div class="recipe-info">
+                <h3>${meal.strMeal}</h3>
+                <span class="recipe-category">${meal.strCategory || 'Categoria'}</span>
+                <p class="recipe-area">🌍 ${meal.strArea || 'Internacional'}</p>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Função para buscar por categoria
+async function searchByCategory(category) {
+    showLoading();
+    
+    // Esconder seção de populares
+    document.getElementById('popularSection').style.display = 'none';
+    document.getElementById('categoriesSection').style.display = 'none';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/filter.php?c=${category}`);
+        const data = await response.json();
+        
+        hideLoading();
+        
+        if (data.meals) {
+            // Buscar detalhes completos de cada receita (limitado a 12)
+            const mealsWithDetails = await Promise.all(
+                data.meals.slice(0, 12).map(meal => getMealDetails(meal.idMeal))
+            );
+            displayResults(mealsWithDetails);
+        } else {
+            displayResults(null);
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Erro ao buscar receitas por categoria:', error);
+        resultsContainer.innerHTML = '<div class="no-results">Erro ao buscar receitas. Tente novamente.</div>';
+    }
+}
+
+// Carregar receitas populares quando a página carregar
+window.addEventListener('DOMContentLoaded', () => {
+    loadRandomRecipes();
 });
